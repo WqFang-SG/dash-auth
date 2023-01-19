@@ -1,7 +1,7 @@
 from .auth import Auth
 import base64
 import flask
-
+from ldap3 import Server, Connection, ALL,NTLM
 
 class BasicAuth(Auth):
     def __init__(self, app, username_password_list):
@@ -17,7 +17,9 @@ class BasicAuth(Auth):
         username_password = base64.b64decode(header.split('Basic ')[1])
         username_password_utf8 = username_password.decode('utf-8')
         username, password = username_password_utf8.split(':', 1)
-        return self._users.get(username) == password
+        server = Server('ldap://zh.if.atcsg.net', get_info= ALL)
+        conn = Connection(server, user="ZH\\"+username, password=password, authentication=NTLM)
+        return conn.bind()
 
     def login_request(self):
         return flask.Response(
